@@ -1,4 +1,5 @@
-const express = require('express');
+import express from 'express';
+import { Request, Response } from 'express';
 const app = express();
 const port = 3000;
 
@@ -7,45 +8,45 @@ const port = 3000;
  */
 app.use(express.json());
 
-app.listen(port, ()=>{
+app.listen(port, () => {
   console.log('服务已启动!');
-})
+});
 
-app.get('/', (resquest, response) => {
+app.get('/', (resquest: Request, response: Response) => {
   response.send('你好');
-})
+});
 
-const data =[
+const data = [
   {
-    id:1,
+    id: 1,
     title: '关山月',
-    content:'明月出天山, 苍茫云海间',
+    content: '明月出天山, 苍茫云海间',
   },
   {
-    id:2,
+    id: 2,
     title: '望岳',
-    content:'会当凌绝顶,一览众山小',
+    content: '会当凌绝顶,一览众山小',
   },
   {
-    id:3,
+    id: 3,
     title: '忆江南',
-    content:'日出江花红胜火, 春来江水绿如蓝',
-  }
+    content: '日出江花红胜火, 春来江水绿如蓝',
+  },
 ];
 
-app.get('/posts', (resquest, response) => {
+app.get('/posts', (resquest: Request, response: Response) => {
   response.send(data);
-})
+});
 
-app.get('/posts/:postId', (resquest, response) => {
+app.get('/posts/:postId', (resquest: Request, response: Response) => {
   // 获取内容 ID
   const { postId } = resquest.params;
 
   // 查找具体内容
-  const posts = data.filter(item => item.id == postId);
+  const posts = data.filter((item) => item.id == parseInt(postId));
 
   // 做出响应
-  response.send(posts[0])
+  response.send(posts[0]);
 });
 
 /**
@@ -62,10 +63,10 @@ app.post('/posts', (request, response) => {
   console.log(request.headers['sing-along']);
 
   //设置响应头部数据
-  response.set('Sing-Along', 'How I wonder what you are')
+  response.set('Sing-Along', 'How I wonder what you are');
 
   // 做出响应
   response.send({
-    message:`成功创建了内容:${content}`
+    message: `成功创建了内容:${content}`,
   });
 });
