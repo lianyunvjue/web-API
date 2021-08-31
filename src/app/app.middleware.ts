@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { nextTick } from "process";
 
 /**
  * 输出请求地址
@@ -27,7 +26,7 @@ let statusCode: number, message: string;
 /**
  * 处理异常
  */
-switch(error, message) {
+switch(error.message) {
   default:
     statusCode = 500;
     message = '服务器暂时出了点问题~~';
