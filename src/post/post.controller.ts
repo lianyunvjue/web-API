@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { getPosts, createPost, updatePost, deletePost } from './post.service';
 import _ from 'lodash';
 /**
