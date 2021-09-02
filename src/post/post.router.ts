@@ -1,7 +1,7 @@
 import express from 'express';
 import * as postController from './post.controller';
 import { requestUrl } from '../app/app.middleware';
-import { authGuard } from '../auth/auth.middeware';
+import { authGuard, acessControl } from '../auth/auth.middeware';
 
 const router = express.Router();
 
@@ -18,7 +18,12 @@ router.post('/posts', authGuard, postController.store);
 /**
  * 更新内容
  */
-router.patch('/posts/:postId', postController.update);
+router.patch(
+  '/posts/:postId',
+  authGuard,
+  acessControl({ possession: true }),
+  postController.update,
+);
 
 /**
  * 删除内容
