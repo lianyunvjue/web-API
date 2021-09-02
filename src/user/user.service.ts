@@ -24,7 +24,7 @@ export const createUser = async (user: UserModel) => {
 export const getUserByName = async (name: string) => {
   //准备查询
   const statement = `
-  SELECT id, name
+  SELECT id, name, password
   FROM user
   WHERE name = ?
   `;

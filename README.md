@@ -20,3 +20,12 @@
 
 ![image-20210813001846904](C:\Users\mi\AppData\Roaming\Typora\typora-user-images\image-20210813001846904.png)
 
+## 生成密钥与公钥
+```
+cd config
+oppenssl
+genrsa -out private.key 4096
+rsa -in private.key -pubout -out public.key
+exit
+```
+
