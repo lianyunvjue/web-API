@@ -31,6 +31,26 @@ router.patch(
 router.delete('/posts/:postId', postController.destory);
 
 /**
+ * 添加内容标签
+ */
+router.post(
+  '/posts/:postId/tag',
+  authGuard,
+  acessControl({ possession: true }),
+  postController.storePostTag,
+);
+
+/**
+ * 移除内容标签
+ */
+router.delete(
+  '/posts/:postId/tag',
+  authGuard,
+  acessControl({ possession: true }),
+  postController.destoryPostTag,
+);
+
+/**
  * 导出路由
  */
 export default router;

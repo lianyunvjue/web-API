@@ -7,6 +7,7 @@ import {
   deletePost,
   createPostTag,
   postHasTag,
+  deletePostTag,
 } from './post.service';
 import { TagModel } from '../tag/tag.model';
 import { getTagByName, createTag } from '../tag/tag.service';
@@ -131,5 +132,34 @@ export const storePostTag = async (
     } catch (error) {
       return next(error);
     }
+  }
+
+  // 给内容打上标签
+  try {
+    await createPostTag(parseInt(postId, 10), tag.id);
+    response.sendStatus(201);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * 移除内容标签
+ */
+export const destoryPostTag = async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => {
+  //准备数据
+  const { postId } = request.params;
+  const { tagId } = request.body;
+
+  // 移除内容标签
+  try {
+    await deletePostTag(parseInt(postId, 10), tagId);
+    response.sendStatus(200);
+  } catch (error) {
+    return next(error);
   }
 };
