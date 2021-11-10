@@ -1,5 +1,6 @@
 import { connection } from '../app/database/mysql';
 import { PostModel } from './post.model';
+import { sqlFragment } from './post.provider';
 
 /**
  * 获取内容列表
@@ -10,13 +11,13 @@ export const getPosts = async () => {
       post.id,
       post.title,
       post.content,
-      JSON_OBJECT(
-        'id', user.id,
-        'name', user.name
-      ) as user
+      ${sqlFragment.user},
+      ${sqlFragment.totalComments},
+      ${sqlFragment.file}
     FROM post
-    LEFT JOIN user
-        ON user.id = post.userId
+    ${sqlFragment.leftJoinUser}
+    ${sqlFragment.leftJoinOneFile}
+    GROUP BY post.id
   `;
 
   const [data] = await connection.promise().query(statement);
