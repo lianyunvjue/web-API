@@ -1,5 +1,5 @@
 import express from 'express';
-import { authGuard } from '../auth/auth.middeware';
+import { authGuard } from '../auth/auth.middleware';
 import * as fileController from './file.controller';
 import { fileInterceptor, fileProcessor } from './file.middleware';
 

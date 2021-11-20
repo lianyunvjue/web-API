@@ -5,7 +5,25 @@ import { sqlFragment } from './post.provider';
 /**
  * 获取内容列表
  */
-export const getPosts = async () => {
+export interface GetPostsOptionsFilter {
+  name: string;
+  sql?: string;
+  param?: string;
+}
+interface GerPostsOptions {
+  sort?: string;
+  filter?: GetPostsOptionsFilter;
+}
+export const getPosts = async (options: GerPostsOptions) => {
+  const { sort, filter } = options;
+
+  //SQL 参数
+  let params: Array<any> = [];
+
+  //设置 SQL参数
+  if (filter.param) {
+    params = [filter.param, ...params];
+  }
   const statement = `
     SELECT
       post.id,
@@ -13,14 +31,18 @@ export const getPosts = async () => {
       post.content,
       ${sqlFragment.user},
       ${sqlFragment.totalComments},
-      ${sqlFragment.file}
+      ${sqlFragment.file},
+      ${sqlFragment.tags}
     FROM post
     ${sqlFragment.leftJoinUser}
     ${sqlFragment.leftJoinOneFile}
+    ${sqlFragment.leftJoinTag}
+    WHERE ${filter.sql}
     GROUP BY post.id
+    ORDER BY ${sort}
   `;
 
-  const [data] = await connection.promise().query(statement);
+  const [data] = await connection.promise().query(statement, params);
 
   return data;
 };

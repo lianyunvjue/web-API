@@ -1,6 +1,6 @@
 import express from 'express';
 import * as tagController from './tag.controller';
-import { authGuard } from '../auth/auth.middeware';
+import { authGuard } from '../auth/auth.middleware';
 
 const router = express.Router();
 
