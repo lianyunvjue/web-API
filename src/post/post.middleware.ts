@@ -59,7 +59,7 @@ export const filter = async (
     request.filter = {
       name: 'tagName',
       sql: 'tag.name = ?',
-      param: tag,
+      param: tag as string,
     };
   }
 
@@ -68,7 +68,7 @@ export const filter = async (
     request.filter = {
       name: 'userPublished',
       sql: 'user.id = ?',
-      param: user,
+      param: user as string,
     };
   }
 
