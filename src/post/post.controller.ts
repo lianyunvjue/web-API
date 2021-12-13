@@ -9,6 +9,7 @@ import {
   postHasTag,
   deletePostTag,
   getPostsTotalCount,
+  getPostById,
 } from './post.service';
 import { TagModel } from '../tag/tag.model';
 import { getTagByName, createTag } from '../tag/tag.service';
@@ -176,5 +177,27 @@ export const destoryPostTag = async (
     response.sendStatus(200);
   } catch (error) {
     return next(error);
+  }
+};
+
+/**
+ * 单个内容
+ */
+export const show = async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => {
+  // 准备数据
+  const { postId } = request.params;
+
+  //调取内容
+  try {
+    const post = await getPostById(parseInt(postId, 10));
+
+    // 做出响应
+    response.send(post);
+  } catch (error) {
+    next(error);
   }
 };
