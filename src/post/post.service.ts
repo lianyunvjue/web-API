@@ -1,4 +1,5 @@
 import { connection } from '../app/database/mysql';
+import { TokenPayload } from '../auth/auth.interface';
 import { PostModel } from './post.model';
 import { sqlFragment } from './post.provider';
 
@@ -20,6 +21,7 @@ interface GerPostsOptions {
   sort?: string;
   filter?: GetPostsOptionsFilter;
   pagination?: GetPostsOptionsPagination;
+  currentUser?: TokenPayload;
 }
 
 export const getPosts = async (options: GerPostsOptions) => {
@@ -27,6 +29,7 @@ export const getPosts = async (options: GerPostsOptions) => {
     sort,
     filter,
     pagination: { limit, offset },
+    currentUser,
   } = options;
 
   //SQL 参数
@@ -36,6 +39,10 @@ export const getPosts = async (options: GerPostsOptions) => {
   if (filter.param) {
     params = [filter.param, ...params];
   }
+
+  // 当前用户
+  const { id: userId } = currentUser;
+
   const statement = `
     SELECT
       post.id,
@@ -45,10 +52,17 @@ export const getPosts = async (options: GerPostsOptions) => {
       ${sqlFragment.totalComments},
       ${sqlFragment.file},
       ${sqlFragment.tags},
-      ${sqlFragment.totalLikes}
+      ${sqlFragment.totalLikes},
+      (
+        SELECT COUNT(user_like_post.postId)
+        FROM user_like_post
+        WHERE
+          user_like_post.postId = post.id
+          && user_like_post.userId = ${userId}
+      ) as liked
     FROM post
     ${sqlFragment.leftJoinUser}
-    ${sqlFragment.leftJoinOneFile}
+    ${sqlFragment.innerJoinOneFile}
     ${sqlFragment.leftJoinTag}
     ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
     WHERE ${filter.sql}
@@ -180,7 +194,7 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
     COUNT(DISTINCT post.id) AS total
   FROM post
   ${sqlFragment.leftJoinUser}
-  ${sqlFragment.leftJoinOneFile}
+  ${sqlFragment.innerJoinFile}
   ${sqlFragment.leftJoinTag}
   ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
   WHERE ${filter.sql}
@@ -196,7 +210,18 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
 /**
  * 按ID 调取内容
  */
-export const getPostById = async (postId: number) => {
+export interface GetPostByIdOptios {
+  currentUser?: TokenPayload;
+}
+
+export const getPostById = async (
+  postId: number,
+  options: GetPostByIdOptios = {},
+) => {
+  const {
+    currentUser: { id: userId },
+  } = options;
+
   // 准备查询
   const statement = `
   SELECT
@@ -207,7 +232,14 @@ export const getPostById = async (postId: number) => {
     ${sqlFragment.totalComments},
     ${sqlFragment.file},
     ${sqlFragment.tags},
-    ${sqlFragment.totalLikes}
+    ${sqlFragment.totalLikes},
+    (
+        SELECT COUNT(user_like_post.postId)
+        FROM user_like_post
+        WHERE
+          user_like_post.postId = post.id
+          && user_like_post.userId = ${userId}
+      ) as liked
   FROM post
     ${sqlFragment.leftJoinUser}
     ${sqlFragment.leftJoinOneFile}
