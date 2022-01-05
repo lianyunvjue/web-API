@@ -34,3 +34,8 @@ export const POSTS_PER_PAGE = parseInt(process.env['POSTS_PER_PAGE'], 10);
  * 内容分页
  */
 export const COMMENTS_PER_PAGE = parseInt(process.env['COMMENTS_PER_PAGE'], 10);
+
+/**
+ * 跨域资源共享
+ */
+export const ALLOW_ORIGIN = process.env['ALLOW_ORIGIN'];

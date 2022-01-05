@@ -11,6 +11,7 @@ import likeRouter from '../like/like.router';
 import appRouter from './app.router';
 import { defaultErrorHandler } from './app.middleware';
 import { currentUser } from '../auth/auth.middleware';
+import { ALLOW_ORIGIN } from './app.config';
 
 /**
  * 创建应用
@@ -22,7 +23,7 @@ const app = express();
  */
 app.use(
   cors({
-    origin: '*',
+    origin: ALLOW_ORIGIN,
     exposedHeaders: 'X-Total-Count',
   }),
 );
