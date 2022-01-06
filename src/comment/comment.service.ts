@@ -20,7 +20,7 @@ export const createComment = async (comment: CommentModel) => {
   const [data] = await connection.promise().query(statement, comment);
 
   //提供数据
-  return data;
+  return data as any;
 };
 
 /**
@@ -197,4 +197,45 @@ export const GetCommentReplies = async (options: GetCommentRepliesOptions) => {
 
   // 提供数据
   return data;
+};
+
+/**
+ * 按ID调取评论回复
+ */
+interface GetCommentByIdOptions {
+  resourceType?: string;
+}
+
+export const GetCommentById = async (
+  commentId: number,
+  options: GetCommentByIdOptions = {},
+) => {
+  //解构选项
+  const { resourceType = 'comment' } = options;
+
+  //SQL参数
+  const params: Array<any> = [commentId];
+
+  //准备查询
+  const statement = `
+  SELECT
+    comment.id,
+    comment.content,
+    ${sqlFragment.user},
+    ${sqlFragment.post}
+    ${resourceType === 'reply' ? `, ${sqlFragment.repliedComment}` : ''}
+    ${resourceType === 'comment' ? `, ${sqlFragment.totalReplies}` : ''}
+  FROM
+    comment
+  ${sqlFragment.leftJoinUser}
+  ${sqlFragment.leftJoinPost}
+  WHERE
+    comment.id = ?
+    `;
+
+  // 执行查询
+  const [data] = await connection.promise().query(statement, params);
+
+  //提供数据
+  return data[0] as any;
 };

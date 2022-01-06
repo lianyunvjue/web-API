@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { parseInt } from 'lodash';
 import { arch } from 'os';
+import { socketIoServer } from '../app/app.server';
 import {
   createComment,
   isReplyComment,
@@ -9,6 +10,7 @@ import {
   getComments,
   getCommentTotalCount,
   GetCommentReplies,
+  GetCommentById,
 } from './comment.service';
 
 /**
@@ -22,6 +24,7 @@ export const store = async (
   //准备数据
   const { id: userId } = request.user;
   const { content, postId } = request.body;
+  const socketId = request.header('X-Socket-Id');
 
   const comment = {
     content,
@@ -32,6 +35,15 @@ export const store = async (
   try {
     //保存评论
     const data = await createComment(comment);
+
+    // 调取新创建的评论
+    const createdComment = await GetCommentById(data.insertId);
+
+    // 触发事件
+    socketIoServer.emit('commentCreated', {
+      comment: createdComment,
+      socketId,
+    });
 
     //做出响应
     response.status(201).send(data);
@@ -53,6 +65,7 @@ export const reply = async (
   const parentId = parseInt(commentId, 10);
   const { id: userId } = request.user;
   const { content, postId } = request.body;
+  const socketId = request.header('X-Socket-Id');
 
   const comment = {
     content,
@@ -73,6 +86,15 @@ export const reply = async (
     // 回复评论
     const data = await createComment(comment);
 
+    // 回复数据
+    const reply = await GetCommentById(data.insertId);
+
+    // 触发事件
+    socketIoServer.emit('commentReplyCreated', {
+      comment: reply,
+      socketId,
+    });
+
     //做出响应
     response.status(201).send(data);
   } catch (error) {
@@ -91,6 +113,7 @@ export const update = async (
   //准备数据
   const { commentId } = request.params;
   const { content } = request.body;
+  const socketId = request.header('X-Socket-Id');
 
   const comment = {
     id: parseInt(commentId, 10),
@@ -100,6 +123,21 @@ export const update = async (
   try {
     //修改评论
     const data = await updateComment(comment);
+
+    // 准备资源
+    const isReply = await isReplyComment(parseInt(commentId, 10));
+    const resourceType = isReply ? 'reply' : 'comment';
+    const resource = await GetCommentById(parseInt(commentId, 10), {
+      resourceType,
+    });
+
+    // 触发事件
+    const eventName = isReply ? 'commentReplyUpdated' : 'commentUpdated';
+
+    socketIoServer.emit(eventName, {
+      [resourceType]: resource,
+      socketId,
+    });
 
     //做出响应
     response.send(data);
@@ -118,10 +156,26 @@ export const destroy = async (
 ) => {
   //准备数据
   const { commentId } = request.params;
+  const socketId = request.header('X-Socket-Id');
 
   try {
+    // 准备资源
+    const isReply = await isReplyComment(parseInt(commentId, 10));
+    const resourceType = isReply ? 'reply' : 'comment';
+    const resource = await GetCommentById(parseInt(commentId, 10), {
+      resourceType,
+    });
+
     //删除评论
     const data = await deleteComment(parseInt(commentId, 10));
+
+    // 触发事件
+    const eventName = isReply ? 'commentReplyDeleted' : 'commentUpdated';
+
+    socketIoServer.emit(eventName, {
+      [resourceType]: resource,
+      socketId,
+    });
 
     //做出响应
     response.send(data);

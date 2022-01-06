@@ -11,7 +11,7 @@ const httpServer = http.createServer(app);
 /**
  * IO服务器
  */
-const socketIoServer = new Server(httpServer, {
+export const socketIoServer = new Server(httpServer, {
   cors: {
     origin: ALLOW_ORIGIN,
     allowedHeaders: ['X-Total-Count'],
