@@ -8,6 +8,7 @@ import tagRouter from '../tag/tag.router';
 import commentRouter from '../comment/comment.router';
 import avatarRouter from '../avatart/avatar.router';
 import likeRouter from '../like/like.router';
+import searchRouter from '../search/search.router';
 import appRouter from './app.router';
 import { defaultErrorHandler } from './app.middleware';
 import { currentUser } from '../auth/auth.middleware';
@@ -49,6 +50,7 @@ app.use(
   tagRouter,
   avatarRouter,
   likeRouter,
+  searchRouter,
   commentRouter,
   appRouter,
 );
