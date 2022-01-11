@@ -9,6 +9,21 @@ const router = express.Router();
 router.get('/search/tags', searchController.tags);
 
 /**
+ * 搜索用户
+ */
+router.get('/search/users', searchController.users);
+
+/**
+ * 搜索相机
+ */
+router.get('/search/cameras', searchController.cameras);
+
+/**
+ * 搜索相机
+ */
+router.get('/search/lens', searchController.lens);
+
+/**
  * 默认导出
  */
 export default router;

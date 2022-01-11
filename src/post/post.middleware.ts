@@ -46,7 +46,8 @@ export const filter = async (
   next: NextFunction,
 ) => {
   //结构查询符
-  const { tag, user, action } = request.query;
+  const { tag, user, action, cameraMake, cameraModel, lensMake, lensModel } =
+    request.query;
 
   //设置默认的过滤
   request.filter = {
@@ -78,6 +79,24 @@ export const filter = async (
       name: 'userLiked',
       sql: 'user_like_post.userId = ?',
       param: user as string,
+    };
+  }
+
+  //过滤出用某种相机拍摄的内容
+  if (cameraMake && cameraModel) {
+    request.filter = {
+      name: 'camera',
+      sql: `file.metadata->'$.Make' = ? AND file.metadata->'$.Nodel' = ?`,
+      params: [cameraMake as string, cameraModel as string],
+    };
+  }
+
+  //过滤出用某种镜头拍摄的内容
+  if (lensMake && lensModel) {
+    request.filter = {
+      name: 'camera',
+      sql: `file.metadata->'$.lensMake' = ? AND file.metadata->'$.lensModel' = ?`,
+      params: [lensMake as string, lensModel as string],
     };
   }
 
