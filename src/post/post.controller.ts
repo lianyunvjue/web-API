@@ -23,9 +23,15 @@ export const index = async (
   response: Response,
   next: NextFunction,
 ) => {
+  // 解构查询符
+  const { status = '' as any } = request.query;
+
   try {
     // 统计内容数量
-    const toatlCount = await getPostsTotalCount({ filter: request.filter });
+    const toatlCount = await getPostsTotalCount({
+      filter: request.filter,
+      status,
+    });
 
     //设置响应头部
     response.header('X-Total-Count', toatlCount);
@@ -39,6 +45,7 @@ export const index = async (
       filter: request.filter,
       pagination: request.pagination,
       currentUser: request.user,
+      status,
     });
     response.send(posts);
   } catch (error) {

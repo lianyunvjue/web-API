@@ -18,11 +18,18 @@ export interface GetPostsOptionsPagination {
   offset: number;
 }
 
+export enum PostStatus {
+  published = 'published',
+  draft = 'draft',
+  archived = 'archived',
+}
+
 interface GerPostsOptions {
   sort?: string;
   filter?: GetPostsOptionsFilter;
   pagination?: GetPostsOptionsPagination;
   currentUser?: TokenPayload;
+  status?: PostStatus;
 }
 
 export const getPosts = async (options: GerPostsOptions) => {
@@ -31,6 +38,7 @@ export const getPosts = async (options: GerPostsOptions) => {
     filter,
     pagination: { limit, offset },
     currentUser,
+    status,
   } = options;
 
   //SQL 参数
@@ -47,11 +55,17 @@ export const getPosts = async (options: GerPostsOptions) => {
   // 当前用户
   const { id: userId } = currentUser;
 
+  // 发布状态
+  const whereStatus = status
+    ? `post.status = '${status}'`
+    : 'post.status IS NOT NULL';
+
   const statement = `
     SELECT
       post.id,
       post.title,
       post.content,
+      post.status,
       ${sqlFragment.user},
       ${sqlFragment.totalComments},
       ${sqlFragment.file},
@@ -69,7 +83,7 @@ export const getPosts = async (options: GerPostsOptions) => {
     ${sqlFragment.innerJoinOneFile}
     ${sqlFragment.leftJoinTag}
     ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
-    WHERE ${filter.sql}
+    WHERE ${filter.sql} AND ${whereStatus}
     GROUP BY post.id
     ORDER BY ${sort}
     LIMIT ?
@@ -187,7 +201,7 @@ export const deletePostTag = async (postId: number, tagId: number) => {
  * 统计内容数量
  */
 export const getPostsTotalCount = async (options: GerPostsOptions) => {
-  const { filter } = options;
+  const { filter, status } = options;
 
   //SQL参数
   let params = [filter.param];
@@ -195,6 +209,11 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
   if (filter.params) {
     params = [...filter.params, ...params];
   }
+
+  // 发布状态
+  const whereStatus = status
+    ? `post.status = '${status}'`
+    : 'post.status IS NOT NULL';
 
   //准备查询
   const statement = `
@@ -205,7 +224,7 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
   ${sqlFragment.innerJoinFile}
   ${sqlFragment.leftJoinTag}
   ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
-  WHERE ${filter.sql}
+  WHERE ${filter.sql} AND ${whereStatus}
   `;
 
   // 执行查询
