@@ -255,6 +255,7 @@ export const getPostById = async (
     post.id,
     post.title,
     post.content,
+    post.status,
     ${sqlFragment.user},
     ${sqlFragment.totalComments},
     ${sqlFragment.file},

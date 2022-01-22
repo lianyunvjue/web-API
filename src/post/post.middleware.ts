@@ -134,7 +134,10 @@ export const validatePostStatus = async (
   response: Response,
   next: NextFunction,
 ) => {
-  const { status = '' as any } = request.query;
+  const { status: statusFormQuery = '' } = request.query;
+  const { status: statusFormBody = '' } = request.body;
+
+  const status = statusFormQuery || statusFormBody;
 
   //检查内容状态是否有效
   const isValidStatus = ['published', 'draft', 'archived', ''].includes(status);

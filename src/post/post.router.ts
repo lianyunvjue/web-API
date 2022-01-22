@@ -28,7 +28,7 @@ router.get(
 /**
  * 创建内容
  */
-router.post('/posts', authGuard, postController.store);
+router.post('/posts', authGuard, validatePostStatus, postController.store);
 
 /**
  * 更新内容
@@ -37,6 +37,7 @@ router.patch(
   '/posts/:postId',
   authGuard,
   acessControl({ possession: true }),
+  validatePostStatus,
   postController.update,
 );
 

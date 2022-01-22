@@ -10,10 +10,12 @@ import {
   deletePostTag,
   getPostsTotalCount,
   getPostById,
+  PostStatus,
 } from './post.service';
 import { TagModel } from '../tag/tag.model';
 import { getTagByName, createTag } from '../tag/tag.service';
 import { deletePostFiles, getPostFiles } from '../file/file.service';
+import { PostModel } from './post.model';
 
 /**
  * 内容列表
@@ -62,13 +64,19 @@ export const store = async (
   next: NextFunction,
 ) => {
   //准备数据
-  const { title, content } = request.body;
-  console.log(request.user);
+  const { title, content, status = PostStatus.draft } = request.body;
   const { id: userId } = request.user;
+
+  const post: PostModel = {
+    title,
+    content,
+    userId,
+    status,
+  };
 
   // 创建内容
   try {
-    const data = await createPost({ title, content, userId });
+    const data = await createPost(post);
     response.status(201).send(data);
   } catch (error) {
     next(error);
@@ -87,7 +95,7 @@ export const update = async (
   const { postId } = request.params;
 
   //准备数据
-  const post = _.pick(request.body, ['title', 'content']);
+  const post = _.pick(request.body, ['title', 'content', 'status']);
 
   //更新
   try {
@@ -205,13 +213,23 @@ export const show = async (
 ) => {
   // 准备数据
   const { postId } = request.params;
+  const { user: currentUser } = request;
 
   //调取内容
   try {
     const post = await getPostById(parseInt(postId, 10), {
-      currentUser: request.user,
+      currentUser,
     });
 
+    //检查权限
+    const ownPost = post.user.id === currentUser.id;
+    const isAdmin = currentUser.id === 1;
+    const isPublished = post.status === PostStatus.published;
+    const canAccess = isAdmin || ownPost || isPublished;
+
+    if (!canAccess) {
+      throw new Error('FORBIDDEN');
+    }
     // 做出响应
     response.send(post);
   } catch (error) {

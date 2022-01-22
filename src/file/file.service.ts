@@ -3,6 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import { connection } from '../app/database/mysql';
 import { FileModel } from './file.model';
+import { TokenPayload } from '../auth/auth.interface';
+import { getPostById, PostStatus } from '../post/post.service';
 
 /**
  * 存储文件
@@ -26,10 +28,10 @@ export const createFile = async (file: FileModel) => {
  */
 export const findFileById = async (fileId: number) => {
   const statement = `
-  SELECT * FROM file
-  WHERE id = ?
+    SELECT *
+    FROM file
+    WHERE id = ?
   `;
-
   // 执行查询
   const [data] = await connection.promise().query(statement, fileId);
 
@@ -110,4 +112,26 @@ export const deletePostFiles = async (files: Array<FileModel>) => {
       });
     });
   });
+};
+
+/**
+ * 检查文件权限
+ */
+interface FileAcessControlOptions {
+  file: FileModel;
+  currentUser: TokenPayload;
+}
+
+export const fileAcessControl = async (options: FileAcessControlOptions) => {
+  const { file, currentUser } = options;
+
+  const ownFile = file.userId === currentUser.id;
+  const isAdmin = currentUser.id === 1;
+  const parentPost = await getPostById(file.postId, { currentUser });
+  const isPublished = parentPost.status === PostStatus.published;
+  const canAccess = ownFile || isAdmin || isPublished;
+
+  if (!canAccess) {
+    throw new Error('FORBIDDEN');
+  }
 };
