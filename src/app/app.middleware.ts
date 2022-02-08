@@ -91,6 +91,10 @@ export const defaultErrorHandler = (
       statusCode = 400;
       message = '无法处理您的请求';
       break;
+    case 'USER_DOES_NOT_OWN_RESOURCE':
+      statusCode = 403;
+      message = '您不能处理这个内容';
+      break;
     case 'FORBIDDEN':
       statusCode = 403;
       message = '没有权限访问';

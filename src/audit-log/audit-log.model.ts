@@ -6,7 +6,7 @@ export enum AuditLogStatus {
   denied = 'denied',
 }
 
-export class AuditLogmodel {
+export class AuditLogModel {
   id?: number;
   userId?: number;
   userName?: string;

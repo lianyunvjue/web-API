@@ -1,4 +1,5 @@
 import { connection } from '../app/database/mysql';
+import { AuditLogStatus } from '../audit-log/audit-log.model';
 import { TokenPayload } from '../auth/auth.interface';
 import { PostModel } from './post.model';
 import { sqlFragment } from './post.provider';
@@ -30,6 +31,7 @@ interface GerPostsOptions {
   pagination?: GetPostsOptionsPagination;
   currentUser?: TokenPayload;
   status?: PostStatus;
+  auditStatus?: AuditLogStatus;
 }
 
 export const getPosts = async (options: GerPostsOptions) => {
@@ -39,6 +41,7 @@ export const getPosts = async (options: GerPostsOptions) => {
     pagination: { limit, offset },
     currentUser,
     status,
+    auditStatus,
   } = options;
 
   //SQL 参数
@@ -60,6 +63,11 @@ export const getPosts = async (options: GerPostsOptions) => {
     ? `post.status = '${status}'`
     : 'post.status IS NOT NULL';
 
+  //审核状态
+  const whereAuditStatus = auditStatus
+    ? `AND audit.status = '${auditStatus}'`
+    : '';
+
   const statement = `
     SELECT
       post.id,
@@ -71,6 +79,7 @@ export const getPosts = async (options: GerPostsOptions) => {
       ${sqlFragment.file},
       ${sqlFragment.tags},
       ${sqlFragment.totalLikes},
+      ${sqlFragment.audit},
       (
         SELECT COUNT(user_like_post.postId)
         FROM user_like_post
@@ -82,8 +91,9 @@ export const getPosts = async (options: GerPostsOptions) => {
     ${sqlFragment.leftJoinUser}
     ${sqlFragment.innerJoinOneFile}
     ${sqlFragment.leftJoinTag}
+    ${sqlFragment.leftJoinOneAuditLog}
     ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
-    WHERE ${filter.sql} AND ${whereStatus}
+    WHERE ${filter.sql} AND ${whereStatus} ${whereAuditStatus}
     GROUP BY post.id
     ORDER BY ${sort}
     LIMIT ?
@@ -201,7 +211,7 @@ export const deletePostTag = async (postId: number, tagId: number) => {
  * 统计内容数量
  */
 export const getPostsTotalCount = async (options: GerPostsOptions) => {
-  const { filter, status } = options;
+  const { filter, status, auditStatus } = options;
 
   //SQL参数
   let params = [filter.param];
@@ -215,6 +225,11 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
     ? `post.status = '${status}'`
     : 'post.status IS NOT NULL';
 
+  //审核状态
+  const whereAuditStatus = auditStatus
+    ? `AND audit.status = '${auditStatus}'`
+    : '';
+
   //准备查询
   const statement = `
   SELECT
@@ -223,8 +238,9 @@ export const getPostsTotalCount = async (options: GerPostsOptions) => {
   ${sqlFragment.leftJoinUser}
   ${sqlFragment.innerJoinFile}
   ${sqlFragment.leftJoinTag}
+  ${sqlFragment.leftJoinOneAuditLog}
   ${filter.name == 'userLiked' ? sqlFragment.innerJoinUserLikePost : ''}
-  WHERE ${filter.sql} AND ${whereStatus}
+  WHERE ${filter.sql} AND ${whereStatus} ${whereAuditStatus}
   `;
 
   // 执行查询
@@ -261,6 +277,7 @@ export const getPostById = async (
     ${sqlFragment.file},
     ${sqlFragment.tags},
     ${sqlFragment.totalLikes},
+    ${sqlFragment.audit},
     (
         SELECT COUNT(user_like_post.postId)
         FROM user_like_post
@@ -272,6 +289,7 @@ export const getPostById = async (
     ${sqlFragment.leftJoinUser}
     ${sqlFragment.leftJoinOneFile}
     ${sqlFragment.leftJoinTag}
+    ${sqlFragment.leftJoinOneAuditLog}
   WHERE post.id = ?
   `;
 
