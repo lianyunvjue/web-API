@@ -1,13 +1,23 @@
 import express from 'express';
 import * as likeController from './like.controller';
 import { authGuard } from '../auth/auth.middleware';
+import { accessLog } from '../access-log/access-log.middleware';
 
 const router = express.Router();
 
 /**
  * 点赞内容
  */
-router.post('/posts/:postId/like', authGuard, likeController.storeUserLikePost);
+router.post(
+  '/posts/:postId/like',
+  authGuard,
+  accessLog({
+    action: 'createUserLikePost',
+    resourceType: 'post',
+    payloadParam: 'postId',
+  }),
+  likeController.storeUserLikePost,
+);
 
 /**
  * 取消点赞内容
@@ -15,6 +25,11 @@ router.post('/posts/:postId/like', authGuard, likeController.storeUserLikePost);
 router.delete(
   '/posts/:postId/like',
   authGuard,
+  accessLog({
+    action: 'deleteUserLikePost',
+    resourceType: 'post',
+    payloadParam: 'postId',
+  }),
   likeController.destoryUserLikePost,
 );
 

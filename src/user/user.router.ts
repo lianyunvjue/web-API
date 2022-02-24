@@ -6,17 +6,36 @@ import {
   validateUpdateUserData,
 } from './user.middleware';
 import { authGuard } from '../auth/auth.middleware';
+import { accessLog } from '../access-log/access-log.middleware';
 
 const router = express.Router();
 /**
  * 创建用户
  */
-router.post('/users', validaUserData, hashPassword, userController.store);
+router.post(
+  '/users',
+  validaUserData,
+  hashPassword,
+  accessLog({
+    action: 'createUser',
+    resourceType: 'user',
+    payloadParam: 'body.name',
+  }),
+  userController.store,
+);
 
 /**
  * 用户账户
  */
-router.get('/users/:userId', userController.show);
+router.get(
+  '/users/:userId',
+  accessLog({
+    action: 'getUserById',
+    resourceType: 'user',
+    resourceParamName: 'userId',
+  }),
+  userController.show,
+);
 
 /**
  * 更新用户
@@ -25,6 +44,11 @@ router.patch(
   '/users',
   authGuard,
   validateUpdateUserData,
+  accessLog({
+    action: 'updateUser',
+    resourceType: 'user',
+    payloadParam: 'body.update.name',
+  }),
   userController.update,
 );
 

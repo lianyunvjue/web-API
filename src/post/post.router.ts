@@ -30,7 +30,17 @@ router.get(
 /**
  * 创建内容
  */
-router.post('/posts', authGuard, validatePostStatus, postController.store);
+router.post(
+  '/posts',
+  authGuard,
+  validatePostStatus,
+  accessLog({
+    action: 'createPost',
+    resourceType: 'post',
+    payloadParam: 'body.title',
+  }),
+  postController.store,
+);
 
 /**
  * 更新内容
@@ -40,13 +50,28 @@ router.patch(
   authGuard,
   acessControl({ possession: true }),
   validatePostStatus,
+  accessLog({
+    action: 'updatePost',
+    resourceType: 'post',
+    payloadParam: 'postId',
+  }),
   postController.update,
 );
 
 /**
  * 删除内容
  */
-router.delete('/posts/:postId', postController.destory);
+router.delete(
+  '/posts/:postId',
+  authGuard,
+  acessControl({ possession: true }),
+  accessLog({
+    action: 'deletePost',
+    resourceType: 'post',
+    payloadParam: 'postId',
+  }),
+  postController.destory,
+);
 
 /**
  * 添加内容标签
@@ -55,6 +80,12 @@ router.post(
   '/posts/:postId/tag',
   authGuard,
   acessControl({ possession: true }),
+  accessLog({
+    action: 'createPostTag',
+    resourceType: 'post',
+    resourceParamName: 'postId',
+    payloadParam: 'body.name',
+  }),
   postController.storePostTag,
 );
 
@@ -65,6 +96,12 @@ router.delete(
   '/posts/:postId/tag',
   authGuard,
   acessControl({ possession: true }),
+  accessLog({
+    action: 'deletePostTag',
+    resourceType: 'post',
+    resourceParamName: 'postId',
+    payloadParam: 'body.tagId',
+  }),
   postController.destoryPostTag,
 );
 

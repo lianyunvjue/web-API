@@ -2,6 +2,7 @@ import express from 'express';
 import * as avatarController from './avatar.controller';
 import { authGuard } from '../auth/auth.middleware';
 import { avatarInterceptor, avatatProcessor } from './avatar.middleware';
+import { accessLog } from '../access-log/access-log.middleware';
 
 const router = express.Router();
 
@@ -13,6 +14,10 @@ router.post(
   authGuard,
   avatarInterceptor,
   avatatProcessor,
+  accessLog({
+    action: 'createAvatar',
+    resourceType: 'avatar',
+  }),
   avatarController.store,
 );
 
